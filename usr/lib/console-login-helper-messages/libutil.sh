@@ -32,6 +32,7 @@ restorecon=$(command -v restorecon || echo "true")
 # generated file path, this avoids interleaving writes to the generated
 # file by using `mv` to overwrite the file.
 write_via_tempfile() {
+    mkdir -p "${tempfile_dir}"
     local generated_file="$1"
     local staged_file="$(mktemp --tmpdir="${tempfile_dir}" "${tempfile_template}")"
     cat > "${staged_file}"
@@ -40,22 +41,3 @@ write_via_tempfile() {
     ${restorecon} "${generated_file}"
 }
 
-# Write concatenation of all files with a given suffix from a list of
-# source directories to a target file. The target file is the first
-# argument; suffix the second; and source directories the remaining,
-# searched in the given order in the list. Atomicity of the write to
-# the target file is given by appending file contents to a tempfile
-# before moving to the target file.
-cat_via_tempfile() {
-    local generated_file="$1"
-    local filter_suffix="$2"
-    shift 2
-    local staged_file="$(mktemp --tmpdir="${tempfile_dir}" "${tempfile_template}")"
-    for source_dir in "${@}"; do
-        # Ignore stderr, and let the command succeed if no files are
-        # found in the source directory.
-        cat "${source_dir}"/*"$filter_suffix" 2>/dev/null >> "${staged_file}" || :
-    done
-    mv "${staged_file}" "${generated_file}"
-    ${restorecon} "${generated_file}"
-}
