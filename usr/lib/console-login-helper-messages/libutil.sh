@@ -32,6 +32,7 @@ restorecon=$(command -v restorecon || echo "true")
 # generated file path, this avoids interleaving writes to the generated
 # file by using `mv` to overwrite the file.
 write_via_tempfile() {
+    mkdir -p "${tempfile_dir}"
     local generated_file="$1"
     local staged_file="$(mktemp --tmpdir="${tempfile_dir}" "${tempfile_template}")"
     cat > "${staged_file}"
